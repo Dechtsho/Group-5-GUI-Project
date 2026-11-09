@@ -22,6 +22,27 @@ def show(app):
 
     app.set_page("Add Tourist", "Add Tourist")
 
+    # Configure dropdown styles
+    style = ttk.Style()
+
+    style.configure(
+        "Tourist.TCombobox",
+        fieldbackground="#FFFFFF",
+        background="#FFFFFF",
+        foreground="#172033",
+        arrowcolor="#2563EB",
+        padding=8
+    )
+
+    style.map(
+        "Tourist.TCombobox",
+        fieldbackground=[("readonly", "#FFFFFF")],
+        foreground=[("readonly", "#172033")],
+        selectbackground=[("readonly", "#FFFFFF")],
+        selectforeground=[("readonly", "#172033")]
+    )
+
+    # Main form
     form = app.card(app.content)
     form.pack(fill="both", expand=True)
 
@@ -40,6 +61,7 @@ def show(app):
     inner.columnconfigure(0, weight=1)
     inner.columnconfigure(1, weight=1)
 
+    # Form fields
     fields = [
         ("Full Name *", "full_name", "entry"),
         ("Country *", "country", "combo"),
@@ -67,17 +89,19 @@ def show(app):
             column=col,
             sticky="ew",
             padx=15,
-            pady=9
+            pady=10
         )
 
-        app.label(
+        # Field labels
+        tk.Label(
             box,
-            label,
-            8,
-            True
+            text=label,
+            bg=app.c["surface"],
+            fg=app.c["text"],
+            font=("Segoe UI", 10, "bold")
         ).pack(
             anchor="w",
-            pady=(0, 5)
+            pady=(0, 7)
         )
 
         if kind == "combo":
@@ -85,19 +109,28 @@ def show(app):
             widget = ttk.Combobox(
                 box,
                 values=COUNTRIES,
-                state="readonly"
+                state="readonly",
+                style="Tourist.TCombobox"
             )
 
         elif kind == "date":
 
+            # Date fields with black text
             widget = DateEntry(
                 box,
                 width=25,
-                background=app.c["primary"],
-                foreground="white",
+                background="#FFFFFF",
+                foreground="black",
+                headersbackground="#E5E7EB",
+                headersforeground="black",
+                selectbackground="#2563EB",
+                selectforeground="white",
+                normalbackground="#FFFFFF",
+                normalforeground="black",
                 borderwidth=1,
                 date_pattern="dd/mm/yyyy",
-                state="readonly"
+                state="readonly",
+                font=("Segoe UI", 10)
             )
 
         elif kind == "accommodation":
@@ -105,7 +138,8 @@ def show(app):
             widget = ttk.Combobox(
                 box,
                 values=ACCOMMODATIONS,
-                state="readonly"
+                state="readonly",
+                style="Tourist.TCombobox"
             )
 
         elif kind == "destination":
@@ -113,7 +147,8 @@ def show(app):
             widget = ttk.Combobox(
                 box,
                 values=DESTINATIONS,
-                state="readonly"
+                state="readonly",
+                style="Tourist.TCombobox"
             )
 
         elif kind == "purpose":
@@ -121,25 +156,28 @@ def show(app):
             widget = ttk.Combobox(
                 box,
                 values=PURPOSES,
-                state="readonly"
+                state="readonly",
+                style="Tourist.TCombobox"
             )
 
         else:
 
             widget = tk.Entry(
                 box,
-                bg=app.c["surface2"],
-                fg=app.c["text"],
-                insertbackground=app.c["text"],
-                relief="flat",
+                bg="#FFFFFF",
+                fg="#172033",
+                insertbackground="#172033",
+                font=("Segoe UI", 10),
+                relief="solid",
+                bd=1,
                 highlightthickness=1,
-                highlightbackground=app.c["border"],
-                highlightcolor=app.c["primary"]
+                highlightbackground="#CBD5E1",
+                highlightcolor="#2563EB"
             )
 
         widget.pack(
             fill="x",
-            ipady=8
+            ipady=7
         )
 
         widgets[key] = widget
@@ -157,6 +195,7 @@ def show(app):
         pady=20
     )
 
+    # Cancel button
     app.button(
         buttons,
         "Cancel",
@@ -167,6 +206,7 @@ def show(app):
         padx=5
     )
 
+    # Save Tourist button
     app.button(
         buttons,
         "Save Tourist",
@@ -178,11 +218,13 @@ def show(app):
     )
 
 
+# Save Tourist Function
 def save(app, widgets):
 
+    # Collect information
     data = {
-        k: w.get().strip()
-        for k, w in widgets.items()
+        key: widget.get().strip()
+        for key, widget in widgets.items()
     }
 
     # Required fields
@@ -191,7 +233,7 @@ def save(app, widgets):
         "country",
         "passport_number",
         "arrival_date",
-        "end_date",
+        "return_date",
         "destination"
     ]
 
@@ -200,14 +242,14 @@ def save(app, widgets):
         if not data[key]:
 
             messagebox.showwarning(
-                "Required",
-                f"Please fill {key.replace('_', ' ').title()}.",
+                "Required Information",
+                f"Please fill in {key.replace('_', ' ').title()}.",
                 parent=app.root
             )
 
             return
 
-    # Convert dates
+    # Validate dates
     try:
 
         arrival = datetime.strptime(
@@ -215,8 +257,8 @@ def save(app, widgets):
             "%d/%m/%Y"
         )
 
-        end = datetime.strptime(
-            data["end_date"],
+        return_date = datetime.strptime(
+            data["return_date"],
             "%d/%m/%Y"
         )
 
@@ -224,40 +266,50 @@ def save(app, widgets):
 
         messagebox.showwarning(
             "Invalid Date",
-            "Please select valid dates.",
+            "Please select valid arrival and return dates.",
             parent=app.root
         )
 
         return
 
     # Check date order
-    if end < arrival:
+    if return_date < arrival:
 
         messagebox.showwarning(
-            "Invalid End Date",
-            "End Date cannot be earlier than Arrival Date.",
+            "Invalid Date",
+            "Return Date cannot be earlier than Arrival Date.",
             parent=app.root
         )
 
         return
 
     # Save tourist information
-    ok, msg = add(data)
+    try:
 
-    if ok:
+        ok, msg = add(data)
 
-        messagebox.showinfo(
-            "Success",
-            msg,
-            parent=app.root
-        )
+        if ok:
 
-        app.show_records()
+            messagebox.showinfo(
+                "Success",
+                "Tourist information saved successfully!",
+                parent=app.root
+            )
 
-    else:
+            app.show_records()
+
+        else:
+
+            messagebox.showerror(
+                "Database Error",
+                str(msg),
+                parent=app.root
+            )
+
+    except Exception as e:
 
         messagebox.showerror(
-            "Error",
-            msg,
+            "Save Error",
+            f"Unable to save tourist information:\n{e}",
             parent=app.root
         )

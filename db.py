@@ -76,7 +76,7 @@ def get_all():
 
         rows = conn.execute("""
             SELECT * FROM tourists
-            ORDER BY id DESC
+            ORDER BY id ASC
         """).fetchall()
 
         return rows
@@ -264,7 +264,7 @@ def search(keyword="", destination="", arrival_date=""):
 
             AND (?='' OR arrival_date=?)
 
-            ORDER BY id DESC
+            ORDER BY id ASC
         """, (
             like,
             like,

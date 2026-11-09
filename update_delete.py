@@ -25,11 +25,29 @@ def show(app, record_id=None):
     list_card = app.card(app.content)
     list_card.pack(fill="x", pady=(0, 8))
 
+    rows = get_all()
+
     tree = app.make_tree(
         list_card,
-        get_all(),
+        rows,
         height=2
     )
+
+    # Display serial numbers starting from 1
+    # Keep the original database ID in the row tags
+    for index, (item, row) in enumerate(
+        zip(tree.get_children(), rows), start=1
+    ):
+
+        values = list(tree.item(item, "values"))
+
+        if values:
+            values[0] = index
+            tree.item(
+                item,
+                values=values,
+                tags=(str(row["id"]),)
+            )
 
     # ==================================
     # FORM CARD
@@ -172,12 +190,12 @@ def show(app, record_id=None):
         if not item:
             return None
 
-        values = tree.item(item, "values")
+        tags = tree.item(item, "tags")
 
-        if not values:
+        if not tags:
             return None
 
-        return int(values[0])
+        return int(tags[0])
 
     # ==================================
     # LOAD RECORD INTO FORM
@@ -230,14 +248,14 @@ def show(app, record_id=None):
         select_record
     )
 
-    # Load requested record
+    # Load requested record using its actual database ID
     if record_id:
 
         for item in tree.get_children():
 
-            values = tree.item(item, "values")
+            tags = tree.item(item, "tags")
 
-            if int(values[0]) == record_id:
+            if tags and int(tags[0]) == record_id:
 
                 tree.selection_set(item)
                 tree.focus(item)

@@ -1,6 +1,8 @@
+
 import tkinter as tk
 from tkinter import messagebox
 from db import get_all, delete
+
 
 def show(app):
     app.set_page("View Records", "Tourist Records")
@@ -25,42 +27,83 @@ def show(app):
                   9, color=app.c["muted"]).pack()
         return
 
+    # Create the table
     tree = app.make_tree(card, rows)
 
+    # Replace the displayed database IDs with serial numbers
+    # starting from 1, while keeping the actual IDs for database actions.
+    for index, row in enumerate(rows, start=1):
+        items = tree.get_children()
+
+        if index <= len(items):
+            item = items[index - 1]
+            values = list(tree.item(item, "values"))
+
+            if values:
+                values[0] = index
+                tree.item(item, values=values)
+
+    # Store the actual database ID against each displayed row
+    for item, row in zip(tree.get_children(), rows):
+        tree.item(item, tags=(str(row["id"]),))
+
     actions = tk.Frame(card, bg=app.c["surface"])
-    actions.pack(fill="x", padx=12, pady=(0,12))
+    actions.pack(fill="x", padx=12, pady=(0, 12))
 
     def selected_id():
         item = tree.focus()
+
         if not item:
             return None
-        return int(tree.item(item, "values")[0])
+
+        tags = tree.item(item, "tags")
+
+        if not tags:
+            return None
+
+        return int(tags[0])
 
     def edit():
         rid = selected_id()
+
         if rid is None:
-            messagebox.showwarning("Select Record",
-                                   "Please select a record.")
+            messagebox.showwarning(
+                "Select Record",
+                "Please select a record."
+            )
             return
+
         app.show_update(rid)
 
     def remove():
-        rid = selected_id() 
+        rid = selected_id()
+
         if rid is None:
-            messagebox.showwarning("Select Record",
-                                   "Please select a record.")
+            messagebox.showwarning(
+                "Select Record",
+                "Please select a record."
+            )
             return
+
         row = next((r for r in rows if r["id"] == rid), None)
+
         if row and messagebox.askyesno(
             "Delete Confirmation",
             f"Delete this record?\n\n{row['full_name']} ({row['country']})"
         ):
             delete(rid)
-            messagebox.showinfo("Deleted",
-                                "Tourist record deleted successfully.")
+
+            messagebox.showinfo(
+                "Deleted",
+                "Tourist record deleted successfully."
+            )
+
             show(app)
 
     app.button(actions, "Delete Selected", remove, True).pack(
-        side="right", padx=5)
+        side="right", padx=5
+    )
+
     app.button(actions, "Update Selected", edit, False).pack(
-        side="right", padx=5)
+        side="right", padx=5
+    )
