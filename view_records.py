@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from _dbm import get_all, delete
+from db import get_all, delete
 
 def show(app):
     app.set_page("View Records", "Tourist Records")

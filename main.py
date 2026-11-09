@@ -1,5 +1,6 @@
+
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 import db
 from styles import LIGHT, DARK
@@ -13,12 +14,15 @@ import update_delete
 import settings
 import mobileview
 import dark_mode
+
 from login import show_login
 
 
 class TourismApp:
+
     def __init__(self, root):
         self.root = root
+
         saved = db.get_settings()
         self.dark = bool(saved["dark_mode"])
         self.c = DARK if self.dark else LIGHT
@@ -27,37 +31,60 @@ class TourismApp:
         self.root.title("Tourism Record Keeping System")
         self.root.geometry("1280x820")
         self.root.minsize(1000, 650)
+
         self.build_shell()
         self.show_dashboard()
 
     def rebuild(self):
         self.c = DARK if self.dark else LIGHT
+
         db.save_settings(
             self.dark,
             bool(db.get_settings()["notifications"]),
             db.get_settings()["language"]
         )
+
         self.build_shell()
 
         page = self.current_page
-        if page == "Dashboard": self.show_dashboard()
-        elif page == "Add Tourist": self.show_add_tourist()
-        elif page == "View Records": self.show_records()
-        elif page == "Search Records": self.show_search()
-        elif page == "Reports": self.show_reports()
-        elif page == "Update / Delete": self.show_update()
-        elif page == "Settings": self.show_settings()
-        else: self.show_dashboard()
+
+        if page == "Dashboard":
+            self.show_dashboard()
+
+        elif page == "Add Tourist":
+            self.show_add_tourist()
+
+        elif page == "View Records":
+            self.show_records()
+
+        elif page == "Search Records":
+            self.show_search()
+
+        elif page == "Reports":
+            self.show_reports()
+
+        elif page == "Update / Delete":
+            self.show_update()
+
+        elif page == "Settings":
+            self.show_settings()
+
+        else:
+            self.show_dashboard()
 
     def build_shell(self):
+
         for w in self.root.winfo_children():
             w.destroy()
 
         self.root.configure(bg=self.c["bg"])
 
-        style=ttk.Style(self.root)
-        try: style.theme_use("clam")
-        except tk.TclError: pass
+        style = ttk.Style(self.root)
+
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
 
         style.configure(
             "Treeview",
@@ -67,14 +94,18 @@ class TourismApp:
             rowheight=38,
             bordercolor=self.c["border"]
         )
+
         style.configure(
             "Treeview.Heading",
             background=self.c["nav"],
             foreground="white",
-            font=("Segoe UI",9,"bold")
+            font=("Segoe UI", 9, "bold")
         )
-        style.map("Treeview",
-                  background=[("selected",self.c["primary"])])
+
+        style.map(
+            "Treeview",
+            background=[("selected", self.c["primary"])]
+        )
 
         style.configure(
             "TCombobox",
@@ -83,220 +114,432 @@ class TourismApp:
             foreground=self.c["text"]
         )
 
-        self.sidebar=tk.Frame(self.root,bg=self.c["nav"],width=225)
-        self.sidebar.pack(side="left",fill="y")
+        # Sidebar
+        self.sidebar = tk.Frame(
+            self.root,
+            bg=self.c["nav"],
+            width=225
+        )
+
+        self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
-        logo=tk.Frame(self.sidebar,bg=self.c["nav"])
-        logo.pack(fill="x",padx=18,pady=(20,22))
+        logo = tk.Frame(
+            self.sidebar,
+            bg=self.c["nav"]
+        )
 
-        tk.Label(logo,text="▲",bg=self.c["nav"],fg="white",
-                 font=("Segoe UI",20,"bold")).pack(side="left",padx=(0,8))
+        logo.pack(
+            fill="x",
+            padx=18,
+            pady=(20, 22)
+        )
+
         tk.Label(
-            logo,text="Tourism Record\nKeeping System",
-            bg=self.c["nav"],fg="white",justify="left",
-            font=("Segoe UI",11,"bold")
+            logo,
+            text="▲",
+            bg=self.c["nav"],
+            fg="white",
+            font=("Segoe UI", 20, "bold")
+        ).pack(side="left", padx=(0, 8))
+
+        tk.Label(
+            logo,
+            text="Tourism Record\nKeeping System",
+            bg=self.c["nav"],
+            fg="white",
+            justify="left",
+            font=("Segoe UI", 11, "bold")
         ).pack(side="left")
 
-        self.nav_buttons={}
-        items=[
-            ("⌂","Dashboard",self.show_dashboard),
-            ("＋","Add Tourist",self.show_add_tourist),
-            ("▣","View Records",self.show_records),
-            ("⌕","Search Records",self.show_search),
-            ("▤","Reports",self.show_reports),
-            ("✎","Settings",self.show_settings),
+        # Navigation buttons
+        self.nav_buttons = {}
+
+        items = [
+            ("⌂", "Dashboard", self.show_dashboard),
+            ("＋", "Add Tourist", self.show_add_tourist),
+            ("▣", "View Records", self.show_records),
+            ("⌕", "Search Records", self.show_search),
+            ("▤", "Reports", self.show_reports),
+            ("✎", "Settings", self.show_settings),
         ]
 
-        for icon,name,command in items:
-            b=tk.Button(
-                self.sidebar,text=f"  {icon}   {name}",
-                command=command,bg=self.c["nav"],fg="#DDE9F5",
+        for icon, name, command in items:
+
+            b = tk.Button(
+                self.sidebar,
+                text=f"  {icon}   {name}",
+                command=command,
+                bg=self.c["nav"],
+                fg="#DDE9F5",
                 activebackground=self.c["primary"],
-                activeforeground="white",relief="flat",bd=0,
-                anchor="w",font=("Segoe UI",10),
-                padx=12,pady=11,cursor="hand2"
+                activeforeground="white",
+                relief="flat",
+                bd=0,
+                anchor="w",
+                font=("Segoe UI", 10),
+                padx=12,
+                pady=11,
+                cursor="hand2"
             )
-            b.pack(fill="x",padx=10,pady=2)
-            self.nav_buttons[name]=b
 
-        tk.Frame(self.sidebar,bg=self.c["nav"]).pack(
-            fill="both",expand=True)
+            b.pack(
+                fill="x",
+                padx=10,
+                pady=2
+            )
 
+            self.nav_buttons[name] = b
+
+        tk.Frame(
+            self.sidebar,
+            bg=self.c["nav"]
+        ).pack(fill="both", expand=True)
+
+        # Mobile View
         tk.Button(
-            self.sidebar,text="  ◱   Mobile View",
+            self.sidebar,
+            text="  ◱   Mobile View",
             command=self.show_mobile,
-            bg=self.c["nav"],fg="#DDE9F5",
+            bg=self.c["nav"],
+            fg="#DDE9F5",
             activebackground=self.c["primary"],
-            activeforeground="white",relief="flat",bd=0,
-            anchor="w",font=("Segoe UI",10),
-            padx=12,pady=11,cursor="hand2"
-        ).pack(fill="x",padx=10,pady=2)
+            activeforeground="white",
+            relief="flat",
+            bd=0,
+            anchor="w",
+            font=("Segoe UI", 10),
+            padx=12,
+            pady=11,
+            cursor="hand2"
+        ).pack(fill="x", padx=10, pady=2)
 
+        # Dark Mode
         tk.Button(
             self.sidebar,
             text="  ☾   Dark Mode" if not self.dark else "  ☀   Light Mode",
             command=self.toggle_dark,
-            bg=self.c["nav"],fg="#DDE9F5",
+            bg=self.c["nav"],
+            fg="#DDE9F5",
             activebackground=self.c["primary"],
-            activeforeground="white",relief="flat",bd=0,
-            anchor="w",font=("Segoe UI",10),
-            padx=12,pady=11,cursor="hand2"
-        ).pack(fill="x",padx=10,pady=2)
+            activeforeground="white",
+            relief="flat",
+            bd=0,
+            anchor="w",
+            font=("Segoe UI", 10),
+            padx=12,
+            pady=11,
+            cursor="hand2"
+        ).pack(fill="x", padx=10, pady=2)
 
+        # Logout
         tk.Button(
-            self.sidebar,text="  ⇥   Logout",
+            self.sidebar,
+            text="  ⇥   Logout",
             command=self.logout,
-            bg=self.c["nav"],fg="#DDE9F5",
+            bg=self.c["nav"],
+            fg="#DDE9F5",
             activebackground=self.c["red"],
-            activeforeground="white",relief="flat",bd=0,
-            anchor="w",font=("Segoe UI",10),
-            padx=12,pady=11,cursor="hand2"
-        ).pack(fill="x",padx=10,pady=(2,18))
+            activeforeground="white",
+            relief="flat",
+            bd=0,
+            anchor="w",
+            font=("Segoe UI", 10),
+            padx=12,
+            pady=11,
+            cursor="hand2"
+        ).pack(fill="x", padx=10, pady=(2, 18))
 
-        main=tk.Frame(self.root,bg=self.c["bg"])
-        main.pack(side="left",fill="both",expand=True)
+        # Main content area
+        main = tk.Frame(
+            self.root,
+            bg=self.c["bg"]
+        )
 
-        self.topbar=tk.Frame(
-            main,bg=self.c["surface"],height=62,
+        main.pack(
+            side="left",
+            fill="both",
+            expand=True
+        )
+
+        # Top bar
+        self.topbar = tk.Frame(
+            main,
+            bg=self.c["surface"],
+            height=62,
             highlightthickness=1,
             highlightbackground=self.c["border"]
         )
+
         self.topbar.pack(fill="x")
         self.topbar.pack_propagate(False)
 
-        self.page_title=tk.Label(
-            self.topbar,text="Dashboard",
-            bg=self.c["surface"],fg=self.c["text"],
-            font=("Segoe UI",14,"bold")
+        self.page_title = tk.Label(
+            self.topbar,
+            text="Dashboard",
+            bg=self.c["surface"],
+            fg=self.c["text"],
+            font=("Segoe UI", 14, "bold")
         )
-        self.page_title.pack(side="left",padx=25)
 
-        tk.Label(self.topbar,text="●",bg=self.c["surface"],
-                 fg=self.c["green"]).pack(side="right",padx=(8,5))
-        tk.Label(self.topbar,text="Admin",bg=self.c["surface"],
-                 fg=self.c["text"],font=("Segoe UI",9,"bold")).pack(
-                     side="right",padx=5)
-        tk.Label(self.topbar,text="◉",bg=self.c["surface"],
-                 fg=self.c["muted"],font=("Segoe UI",13)).pack(
-                     side="right",padx=8)
-
-        self.content=tk.Frame(main,bg=self.c["bg"])
-        self.content.pack(fill="both",expand=True,padx=25,pady=22)
-
-    def set_page(self,title,active):
-        for w in self.content.winfo_children():
-            w.destroy()
-        self.current_page=active
-        self.page_title.configure(text=title)
+        self.page_title.pack(
+            side="left",
+            padx=25
+        )
 
         tk.Label(
-            self.content,text=title,bg=self.c["bg"],fg=self.c["text"],
-            font=("Segoe UI",20,"bold")
+            self.topbar,
+            text="●",
+            bg=self.c["surface"],
+            fg=self.c["green"]
+        ).pack(side="right", padx=(8, 5))
+
+        tk.Label(
+            self.topbar,
+            text="Admin",
+            bg=self.c["surface"],
+            fg=self.c["text"],
+            font=("Segoe UI", 9, "bold")
+        ).pack(side="right", padx=5)
+
+        tk.Label(
+            self.topbar,
+            text="◉",
+            bg=self.c["surface"],
+            fg=self.c["muted"],
+            font=("Segoe UI", 13)
+        ).pack(side="right", padx=8)
+
+        # Page content
+        self.content = tk.Frame(
+            main,
+            bg=self.c["bg"]
+        )
+
+        self.content.pack(
+            fill="both",
+            expand=True,
+            padx=25,
+            pady=22
+        )
+
+    def set_page(self, title, active):
+
+        for w in self.content.winfo_children():
+            w.destroy()
+
+        self.current_page = active
+        self.page_title.configure(text=title)
+
+        subtitle = {
+            "Dashboard": "Overview of tourism records",
+            "Add Tourist": "Enter new tourist information",
+            "Tourist Records": "Manage and view all tourist records",
+            "Search Tourist Records": "Search by name, country, passport number or destination",
+            "Reports": "View and generate tourism statistics",
+            "Update / Delete Record": "Edit or remove a tourist record",
+            "Settings": "Customize your application"
+        }.get(title, "")
+
+        tk.Label(
+            self.content,
+            text=title,
+            bg=self.c["bg"],
+            fg=self.c["text"],
+            font=("Segoe UI", 20, "bold")
         ).pack(anchor="w")
-        subtitle={
-            "Dashboard":"Overview of tourism records",
-            "Add Tourist":"Enter new tourist information",
-            "Tourist Records":"Manage and view all tourist records",
-            "Search Tourist Records":"Search by name, country, passport number or destination",
-            "Reports":"View and generate tourism statistics",
-            "Update / Delete Record":"Edit or remove a tourist record",
-            "Settings":"Customize your application"
-        }.get(title,"")
+
         if subtitle:
+
             tk.Label(
-                self.content,text=subtitle,bg=self.c["bg"],
-                fg=self.c["muted"],font=("Segoe UI",9)
-            ).pack(anchor="w",pady=(2,18))
+                self.content,
+                text=subtitle,
+                bg=self.c["bg"],
+                fg=self.c["muted"],
+                font=("Segoe UI", 9)
+            ).pack(
+                anchor="w",
+                pady=(2, 18)
+            )
 
-        for name,b in self.nav_buttons.items():
-            b.configure(bg=self.c["primary"] if name==active else self.c["nav"])
+        for name, b in self.nav_buttons.items():
 
-    def card(self,parent):
+            b.configure(
+                bg=self.c["primary"] if name == active else self.c["nav"]
+            )
+
+    def card(self, parent):
+
         return tk.Frame(
-            parent,bg=self.c["surface"],
+            parent,
+            bg=self.c["surface"],
             highlightthickness=1,
             highlightbackground=self.c["border"]
         )
 
-    def label(self,parent,text,size=9,bold=False,color=None):
+    def label(self, parent, text, size=9, bold=False, color=None):
+
         return tk.Label(
-            parent,text=text,bg=self.c["surface"],
+            parent,
+            text=text,
+            bg=self.c["surface"],
             fg=color or self.c["text"],
-            font=("Segoe UI",size,"bold" if bold else "normal")
+            font=(
+                "Segoe UI",
+                size,
+                "bold" if bold else "normal"
+            )
         )
 
-    def button(self,parent,text,command,primary=True):
+    def button(self, parent, text, command, primary=True):
+
         return tk.Button(
-            parent,text=text,command=command,
+            parent,
+            text=text,
+            command=command,
             bg=self.c["primary"] if primary else self.c["surface"],
             fg="white" if primary else self.c["text"],
             activebackground=self.c["primary2"] if primary else self.c["surface2"],
             activeforeground="white" if primary else self.c["text"],
-            relief="flat",bd=0,font=("Segoe UI",9,"bold"),
-            padx=15,pady=8,cursor="hand2"
+            relief="flat",
+            bd=0,
+            font=("Segoe UI", 9, "bold"),
+            padx=15,
+            pady=8,
+            cursor="hand2"
         )
 
-    def make_tree(self,parent,rows,height=8):
-        cols=("id","name","country","date","destination","passport","purpose")
-        tree=ttk.Treeview(parent,columns=cols,show="headings",
-                          height=height)
-        headers=[
-            ("id","ID",50),("name","Name",170),("country","Country",120),
-            ("date","Arrival Date",115),("destination","Destination",120),
-            ("passport","Passport No.",145),("purpose","Purpose",110)
+    def make_tree(self, parent, rows, height=8):
+
+        cols = (
+            "id",
+            "name",
+            "country",
+            "date",
+            "destination",
+            "passport",
+            "purpose"
+        )
+
+        tree = ttk.Treeview(
+            parent,
+            columns=cols,
+            show="headings",
+            height=height
+        )
+
+        headers = [
+            ("id", "ID", 50),
+            ("name", "Name", 170),
+            ("country", "Country", 120),
+            ("date", "Arrival Date", 115),
+            ("destination", "Destination", 120),
+            ("passport", "Passport No.", 145),
+            ("purpose", "Purpose", 110)
         ]
-        for col,text,width in headers:
-            tree.heading(col,text=text)
-            tree.column(col,width=width)
-        tree.pack(fill="both",expand=True,padx=12,pady=12)
+
+        for col, text, width in headers:
+
+            tree.heading(col, text=text)
+            tree.column(col, width=width)
+
+        tree.pack(
+            fill="both",
+            expand=True,
+            padx=12,
+            pady=12
+        )
+
         for r in rows:
-            tree.insert("", "end", values=(
-                r["id"],r["full_name"],r["country"],
-                r["arrival_date"],r["destination"],
-                r["passport_number"],r["purpose"]
-            ))
+
+            tree.insert(
+                "",
+                "end",
+                values=(
+                    r["id"],
+                    r["full_name"],
+                    r["country"],
+                    r["arrival_date"],
+                    r["destination"],
+                    r["passport_number"],
+                    r["purpose"]
+                )
+            )
+
         return tree
 
-    # Navigation
+    # Navigation functions
+
     def show_dashboard(self):
         dashboard.show(self)
+
     def show_add_tourist(self):
         Add_tourist.show(self)
+
     def show_records(self):
         view_records.show(self)
+
     def show_search(self):
         search_record.show(self)
+
     def show_reports(self):
         reports.show(self)
-    def show_update(self,record_id=None):
-        update_delete.show(self,record_id)
+
+    def show_update(self, record_id=None):
+        update_delete.show(self, record_id)
+
     def show_settings(self):
         settings.show(self)
+
     def show_mobile(self):
         mobileview.show_mobile(self)
 
     def toggle_dark(self):
         dark_mode.toggle(self)
 
-    def set_dark_preview(self,value):
-        # Used by Settings. The actual application changes when saved.
+    def set_dark_preview(self, value):
+        # Used by Settings.
+        # The actual application changes when saved.
         pass
 
+    # Logout function
+
     def logout(self):
-        from tkinter import messagebox
-        if messagebox.askyesno("Logout","Do you want to logout?"):
-            self.root.destroy()
-            start()
+
+        if messagebox.askyesno(
+            "Logout",
+            "Do you want to logout?",
+            parent=self.root
+        ):
+
+            # Remove dashboard widgets
+            for widget in self.root.winfo_children():
+                widget.destroy()
+
+            # Return to login screen
+            show_login(
+                self.root,
+                lambda: TourismApp(self.root)
+            )
+
+
+# Start the application
 
 def start():
+
     db.init_db()
-    root=tk.Tk()
-    app=TourismApp(root)
+
+    root = tk.Tk()
+
+    # Display login first
+    show_login(
+        root,
+        lambda: TourismApp(root)
+    )
+
+    # Main event loop
     root.mainloop()
 
-def after_login():
-    start()
 
-if __name__=="__main__":
-    show_login(after_login)
+if __name__ == "__main__":
+    start()
