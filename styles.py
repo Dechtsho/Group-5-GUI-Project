@@ -40,8 +40,26 @@ COUNTRIES = [
 ]
 
 DESTINATIONS = [
-    "Paro", "Thimphu", "Punakha", "Bumthang",
-    "Phobjikha", "Haa", "Other"
+    "Paro", 
+    "Thimphu",
+    "Punakha",
+    "Bumthang",
+    "Haa",
+    "Chhukha",
+    "Dagana",
+    "Gasa",
+    "Lhuentse",
+    "Mongar",
+    "Pema Gatshel",
+    "Samdrup Jongkhar",
+    "Samtse",
+    "Sarpang",
+    "Trashigang",
+    "Trashiyangtse",
+    "Trongsa",
+    "Tsirang",
+    "Wangdue Phodrang",
+    "Zhemgang"
 ]
 
-PURPOSES = ["Tourism", "Business", "Education", "Other"]
+PURPOSES = ["Tourist", "Business", "Education",]

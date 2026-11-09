@@ -1,6 +1,9 @@
 
 import tkinter as tk
 from tkinter import ttk, messagebox
+from pathlib import Path
+
+from PIL import Image, ImageTk, ImageOps
 
 import db
 from styles import LIGHT, DARK
@@ -31,6 +34,9 @@ class TourismApp:
         self.root.title("Tourism Record Keeping System")
         self.root.geometry("1280x820")
         self.root.minsize(1000, 650)
+
+        # Keep logo image reference
+        self.logo_image = None
 
         self.build_shell()
         self.show_dashboard()
@@ -114,7 +120,10 @@ class TourismApp:
             foreground=self.c["text"]
         )
 
-        # Sidebar
+        # ==============================
+        # SIDEBAR
+        # ==============================
+
         self.sidebar = tk.Frame(
             self.root,
             bg=self.c["nav"],
@@ -124,6 +133,7 @@ class TourismApp:
         self.sidebar.pack(side="left", fill="y")
         self.sidebar.pack_propagate(False)
 
+        # Sidebar Logo and Application Title
         logo = tk.Frame(
             self.sidebar,
             bg=self.c["nav"]
@@ -135,14 +145,47 @@ class TourismApp:
             pady=(20, 22)
         )
 
-        tk.Label(
-            logo,
-            text="▲",
-            bg=self.c["nav"],
-            fg="white",
-            font=("Segoe UI", 20, "bold")
-        ).pack(side="left", padx=(0, 8))
+        # Load login background image as application logo
+        logo_path = (
+            Path(__file__).resolve().parent
+            / "assets"
+            / "login_background.jpg"
+        )
 
+        try:
+            original_image = Image.open(logo_path).convert("RGB")
+
+            # Resize image into a square logo
+            resized_image = ImageOps.fit(
+                original_image,
+                (40, 40),
+                method=Image.Resampling.LANCZOS
+            )
+
+            self.logo_image = ImageTk.PhotoImage(resized_image)
+
+            # Display application logo
+            tk.Label(
+                logo,
+                image=self.logo_image,
+                bg=self.c["nav"],
+                bd=0
+            ).pack(side="left", padx=(0, 8))
+
+        except (FileNotFoundError, OSError) as e:
+
+            print("Logo image could not be loaded:", e)
+
+            # Fallback triangle icon
+            tk.Label(
+                logo,
+                text="▲",
+                bg=self.c["nav"],
+                fg="white",
+                font=("Segoe UI", 20, "bold")
+            ).pack(side="left", padx=(0, 8))
+
+        # Application title
         tk.Label(
             logo,
             text="Tourism Record\nKeeping System",
@@ -152,7 +195,10 @@ class TourismApp:
             font=("Segoe UI", 11, "bold")
         ).pack(side="left")
 
-        # Navigation buttons
+        # ==============================
+        # NAVIGATION BUTTONS
+        # ==============================
+
         self.nav_buttons = {}
 
         items = [
@@ -161,7 +207,8 @@ class TourismApp:
             ("▣", "View Records", self.show_records),
             ("⌕", "Search Records", self.show_search),
             ("▤", "Reports", self.show_reports),
-            ("✎", "Settings", self.show_settings),
+            ("✎", "Update / Delete", self.show_update),
+            ("⚙", "Settings", self.show_settings),
         ]
 
         for icon, name, command in items:
@@ -196,7 +243,10 @@ class TourismApp:
             bg=self.c["nav"]
         ).pack(fill="both", expand=True)
 
-        # Mobile View
+        # ==============================
+        # MOBILE VIEW
+        # ==============================
+
         tk.Button(
             self.sidebar,
             text="  ◱   Mobile View",
@@ -214,7 +264,10 @@ class TourismApp:
             cursor="hand2"
         ).pack(fill="x", padx=10, pady=2)
 
-        # Dark Mode
+        # ==============================
+        # DARK MODE
+        # ==============================
+
         tk.Button(
             self.sidebar,
             text="  ☾   Dark Mode" if not self.dark else "  ☀   Light Mode",
@@ -232,7 +285,10 @@ class TourismApp:
             cursor="hand2"
         ).pack(fill="x", padx=10, pady=2)
 
-        # Logout
+        # ==============================
+        # LOGOUT
+        # ==============================
+
         tk.Button(
             self.sidebar,
             text="  ⇥   Logout",
@@ -250,7 +306,10 @@ class TourismApp:
             cursor="hand2"
         ).pack(fill="x", padx=10, pady=(2, 18))
 
-        # Main content area
+        # ==============================
+        # MAIN CONTENT AREA
+        # ==============================
+
         main = tk.Frame(
             self.root,
             bg=self.c["bg"]
@@ -262,7 +321,10 @@ class TourismApp:
             expand=True
         )
 
-        # Top bar
+        # ==============================
+        # TOP BAR
+        # ==============================
+
         self.topbar = tk.Frame(
             main,
             bg=self.c["surface"],
@@ -310,7 +372,10 @@ class TourismApp:
             font=("Segoe UI", 13)
         ).pack(side="right", padx=8)
 
-        # Page content
+        # ==============================
+        # PAGE CONTENT
+        # ==============================
+
         self.content = tk.Frame(
             main,
             bg=self.c["bg"]
@@ -322,6 +387,10 @@ class TourismApp:
             padx=25,
             pady=22
         )
+
+    # ==============================
+    # SET PAGE
+    # ==============================
 
     def set_page(self, title, active):
 
@@ -368,6 +437,10 @@ class TourismApp:
                 bg=self.c["primary"] if name == active else self.c["nav"]
             )
 
+    # ==============================
+    # CARD
+    # ==============================
+
     def card(self, parent):
 
         return tk.Frame(
@@ -376,6 +449,10 @@ class TourismApp:
             highlightthickness=1,
             highlightbackground=self.c["border"]
         )
+
+    # ==============================
+    # LABEL
+    # ==============================
 
     def label(self, parent, text, size=9, bold=False, color=None):
 
@@ -390,6 +467,10 @@ class TourismApp:
                 "bold" if bold else "normal"
             )
         )
+
+    # ==============================
+    # BUTTON
+    # ==============================
 
     def button(self, parent, text, command, primary=True):
 
@@ -408,6 +489,10 @@ class TourismApp:
             pady=8,
             cursor="hand2"
         )
+
+    # ==============================
+    # TREEVIEW
+    # ==============================
 
     def make_tree(self, parent, rows, height=8):
 
@@ -468,7 +553,9 @@ class TourismApp:
 
         return tree
 
-    # Navigation functions
+    # ==============================
+    # NAVIGATION FUNCTIONS
+    # ==============================
 
     def show_dashboard(self):
         dashboard.show(self)
@@ -502,7 +589,9 @@ class TourismApp:
         # The actual application changes when saved.
         pass
 
-    # Logout function
+    # ==============================
+    # LOGOUT FUNCTION
+    # ==============================
 
     def logout(self):
 
@@ -523,7 +612,9 @@ class TourismApp:
             )
 
 
-# Start the application
+# ==============================
+# START APPLICATION
+# ==============================
 
 def start():
 
